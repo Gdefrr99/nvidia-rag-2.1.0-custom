@@ -112,15 +112,15 @@ Para generar una NGC API Key, debe seguir los siguientes pasos:
     source deploy/compose/perf_profile.env
     ```
 
-    > **Nota:** las variables presentes en el archivo `deploy/compose/accuracy_profile.env` se pueden modificar siguiendo el readme de buenas prácticas según las necesidades del usuario. Por otro lado, el archivo `deploy/compose/perf_profile.env` contiene configuraciones recomendadas para el perfil de optimización.
+    > **Nota:** las variables presentes en el archivo `deploy/compose/accuracy_profile.env` se pueden modificar siguiendo el readme de [buenas prácticas](./accuracy_perf.md) según las necesidades del usuario. Por otro lado, el archivo `deploy/compose/perf_profile.env` contiene configuraciones recomendadas para el perfil de optimización.
    
 **IMPORTANTE**: si ya se ha clonado este repositorio, el usuario puede saltarse todos los pasos siguientes hasta el 12 incluido, siendo únicamente necesario ejecutar `export OPENTELEMETRY_CONFIG_FILE=$(pwd)/deploy/config/otel-collector-config.yaml` desde la carpeta principal para habilitar el rastreo los servicios de observabilidad. Los pasos del 8 al 12 sirven para aquellos usuarios que quieran replicar los pasos seguidos para conseguir esta versión modificada del RAG oficial de NVIDIA. Si este es el caso, los usuarios deben clonar el proyecto original desde el [repositorio oficial de Nvidia en GitHub para la versión 2.1.0](https://github.com/NVIDIA-AI-Blueprints/rag/tree/v2.1.0). Una vez clonado, **NO se debe cambiar de lugar ninguno de los archivos dentro del proyecto**, y todos los siguientes pasos se deben llevar acabo sobre este proyecto clonado.
 
-8.  Los modelos de inferencia, generación de embeddings y reranking ofrecidos por Nvidia son `llama-3.3-nemotron-super-49b-v1`, `llama-3.2-NV-EmbedQA-1B-v2` y `llama-3.2-nv-rerankqa-1b-v2` respectivamente. Sin embargo, como se comentó anteriormente, para trabajar con estos modelos se requieren varias GPUs A100 80 GB o superiores.
+8.  Los modelos de inferencia, generación de embeddings y reranking ofrecidos por Nvidia son [llama-3.3-nemotron-super-49b-v1](Customized NVIDIA RAG Blueprint 2.1.0 version.), [llama-3.2-NV-EmbedQA-1B-v2](https://build.nvidia.com/nvidia/llama-3_2-nv-embedqa-1b-v2) y [llama-3.2-nv-rerankqa-1b-v2](https://build.nvidia.com/nvidia/llama-3_2-nv-rerankqa-1b-v2) respectivamente. Sin embargo, como se comentó anteriormente, para trabajar con estos modelos se requieren varias GPUs A100 80 GB o superiores.
 
-    Para trabajar con **3xA100 40 GB** es necesario cambiar el modelo de inferencia por `llama3.1-nemotron-nano-4b-v1.1` y el modelo de generación de embeddings por `nv-embedqa-e5-v5`. Para ello, será necesario modificar una serie de archivos siguiendo las indicaciones del readme `change-model.md`. Más concretamente, los cambios que debemos realizar son los siguientes:
+    Para trabajar con **3xA100 40 GB** es necesario cambiar el modelo de inferencia por [llama3.1-nemotron-nano-4b-v1.1](https://build.nvidia.com/nvidia/llama-3_1-nemotron-nano-4b-v1_1) y el modelo de generación de embeddings por [nv-embedqa-e5-v5](https://build.nvidia.com/nvidia/nv-embedqa-e5-v5). Para ello, será necesario modificar una serie de archivos siguiendo las indicaciones del readme [change-model.md](./change-model.md). Más concretamente, los cambios que debemos realizar son los siguientes:
 
-    * **a. Dentro de `nims.yaml`:**
+    * **a. Dentro de [nims.yaml](../deploy/compose/nims.yaml):**
         * i. En el servicio `nim-llm`, cambiamos:
             `image: nvcr.io/nim/nvidia/llama-3.3-nemotron-super-49b-v1:1.2.3`
             por
@@ -129,7 +129,7 @@ Para generar una NGC API Key, debe seguir los siguientes pasos:
         * ii. En el servicio `nemoretriever-embedding-ms` cambiamos `image: nvcr.io/nim/nvidia/llama-3.2-nv-embedqa-1b-v2:1.0.0` por `image: nvcr.io/nim/nvidia/nv-embedqa-e5-v5:1.0.0`.
         * iii. En el servicio `nemoretriever-ranking-ms` cambiamos `device_ids: ['${RANKING_MS_GPU_ID:-0}']` por `device_ids: ['0', '1', '2']`.
 
-    * **b. Dentro de `docker-compose-ingestor-server.yaml`:**
+    * **b. Dentro de [docker-compose-ingestor-server.yaml](../deploy/compose/docker-compose-ingestor-server.yaml):**
         * Cambiamos:
             `APP_EMBEDDINGS_MODELNAME: ${APP_EMBEDDINGS_MODELNAME:-nvidia/llama-3.2-nv-embedqa-1b-v2}`
             por
@@ -140,7 +140,7 @@ Para generar una NGC API Key, debe seguir los siguientes pasos:
             `EMBEDDING_NIM_MODEL_NAME=${EMBEDDING_NIM_MODEL_NAME:-${APP_EMBEDDINGS_MODELNAME:-nvidia/nv-embedqa-e5-v5}}`
         * Y `APP_EMBEDDINGS_DIMENSIONS: ${APP_EMBEDDINGS_DIMENSIONS:-2048}` por `APP_EMBEDDINGS_DIMENSIONS: ${APP_EMBEDDINGS_DIMENSIONS:-1024}`. Esto último es necesario puesto que vamos a trabajar con un modelo que genera embeddings de tamaño 1024.
 
-    * **c. Dentro de `docker-compose-rag-server.yaml` cambiamos:**
+    * **c. Dentro de [docker-compose-rag-server.yaml](../deploy/compose/docker-compose-rag-server.yaml) cambiamos:**
         * `APP_LLM_MODELNAME: ${APP_LLM_MODELNAME:-"nvidia/llama-3.3-nemotron-super-49b-v1"}`
             por `APP_LLM_MODELNAME: ${APP_LLM_MODELNAME:-"nvidia/Llama-3.1-Nemotron-Nano-4B-Instruct"}`
         * `NEXT_PUBLIC_MODEL_NAME: ${APP_LLM_MODELNAME:-nvidia/llama-3.3-nemotron-super-49b-v1}`
@@ -151,7 +151,7 @@ Para generar una NGC API Key, debe seguir los siguientes pasos:
             por `NEXT_PUBLIC_EMBEDDING_MODEL: ${APP_EMBEDDINGS_MODELNAME:-nvidia/nv-embedqa-e5-v5}`
 
 9.  Para poder trabajar los embeddings de tamaño 1024 generados por nuestro nuevo modelo, además debemos de modificar dos archivos más:
-    * **a. En `server.py`, debemos cambiar:**
+    * **a. En [server.py](../src/ingestor_server/server.py), debemos cambiar:**
         ```python
         async def create_collections(
             vdb_endpoint: str = Query(default=os.getenv("APP_VECTORSTORE_URL"), include_in_schema=False),
@@ -167,7 +167,7 @@ Para generar una NGC API Key, debe seguir los siguientes pasos:
             collection_type: str = "text",
             embedding_dimension: int = 1024
         ```
-    * **b. En `configuration.py`, debemos cambiar:**
+    * **b. En [configuration.py](../src/configuration.py), debemos cambiar:**
         ```python
         dimensions: int = configfield(
             "dimensions",
@@ -184,7 +184,7 @@ Para generar una NGC API Key, debe seguir los siguientes pasos:
         )
         ```
 
-10. Al trabajar con GPUs A100, es recomendable desplegar el servicio para la base de datos de colecciones en CPU en lugar de GPU para evitar problemas por falta de memoria. Para ello, modificaremos el servicio `milvus` en `vectordb.yaml` por:
+10. Al trabajar con GPUs A100, es recomendable desplegar el servicio para la base de datos de colecciones en CPU en lugar de GPU para evitar problemas por falta de memoria. Para ello, modificaremos el servicio `milvus` en [vectordb.yaml](../deploy/compose/vectordb.yaml) por:
 
     ```yaml
     milvus:
@@ -223,7 +223,7 @@ Para generar una NGC API Key, debe seguir los siguientes pasos:
       #           device_ids: ['0']
     ```
 
-    Además también será necesario cambiar las variables `APP_VECTORSTORE_ENABLEGPUINDEX: ${APP_VECTORSTORE_ENABLEGPUINDEX:-True}` y `APP_VECTORSTORE_ENABLEGPUSEARCH: ${APP_VECTORSTORE_ENABLEGPUSEARCH:-True}` por `False`, respectivamente, en el archivo `docker-compose-ingestor-server.yaml`.
+    Además también será necesario cambiar las variables `APP_VECTORSTORE_ENABLEGPUINDEX: ${APP_VECTORSTORE_ENABLEGPUINDEX:-True}` y `APP_VECTORSTORE_ENABLEGPUSEARCH: ${APP_VECTORSTORE_ENABLEGPUSEARCH:-True}` por `False`, respectivamente, en el archivo [docker-compose-ingestor-server.yaml](../deploy/compose/docker-compose-ingestor-server.yaml).
 
 11. En cuanto a la configuración de Docker, es necesario habilitar el runtime de Nvidia. Para ello, debemos modificar el archivo `/etc/docker/daemon.json`, que contendrá algo similar a:
 
@@ -250,15 +250,15 @@ Para generar una NGC API Key, debe seguir los siguientes pasos:
     }
     ```
 
-12. En la carpeta `docs`, podemos encontrar la información necesaria para añadir nuevos servicios que mejorarán nuestro RAG. Sin embargo, debido a problemas en el despliegue de estos servicios en la nube y por falta de memoria en GPU, las únicas funcionalidades extra que se podrán añadir con nuestra configuración y recursos son:
+12. En la carpeta [docs](../docs/), podemos encontrar la información necesaria para añadir nuevos servicios que mejorarán nuestro RAG. Sin embargo, debido a problemas en el despliegue de estos servicios en la nube y por falta de memoria en GPU, las únicas funcionalidades extra que se podrán añadir con nuestra configuración y recursos son:
 
-    * **a. Búsqueda híbrida:** combina keyword matching y representaciones densas. Siguiendo el readme `hybrid_search.md`, solo necesitamos cambiar `APP_VECTORSTORE_SEARCHTYPE: ${APP_VECTORSTORE_SEARCHTYPE:-"dense"}` por `APP_VECTORSTORE_SEARCHTYPE: ${APP_VECTORSTORE_SEARCHTYPE:-"hybrid"}` en los archivos `docker-compose-ingestor-server.yaml` y `docker-compose-rag-server.yaml`.
+    * **a. Búsqueda híbrida:** combina keyword matching y representaciones densas. Siguiendo el readme [hybrid_search.md](../docs/hybrid_search.md), solo necesitamos cambiar `APP_VECTORSTORE_SEARCHTYPE: ${APP_VECTORSTORE_SEARCHTYPE:-"dense"}` por `APP_VECTORSTORE_SEARCHTYPE: ${APP_VECTORSTORE_SEARCHTYPE:-"hybrid"}` en los archivos [docker-compose-ingestor-server.yaml](../deploy/compose/docker-compose-ingestor-server.yaml) y [docker-compose-rag-server.yaml](../deploy/compose/docker-compose-rag-server.yaml).
     * **b. Observabilidad:** habilita el rastreo y la observabilidad para el servidor RAG usando OpenTelemetry (OTel) Collector y Zipkin. Para poder iniciar los servicios de observabilidad, desde la carpeta principal establezca la variable de entorno requerida para el OTel Collector Config:
         ```bash
         export OPENTELEMETRY_CONFIG_FILE=$(pwd)/deploy/config/otel-collector-config.yaml
         ```
-        Posteriormente, en el archivo `docker-compose-rag-server.yaml` es necesario cambiar la variable `APP_TRACING_ENABLED: "False"` por `APP_TRACING_ENABLED: "True"`. Véase el readme `observability.md` para aprender más acerca del funcionamiento de este servicio.
-    * **c. Query rewriting support:** permite una mayor precisión para conversaciones haciendo una llamada adicional al LLM para descontextualizar la pregunta entrante, antes de enviarla a la parte de retrieving. Siguiendo el readme `query_rewriter.md`, para desplegar este servicio en la nube (puesto que no cabe en GPU junto con el resto de servicios) es necesario cambiar la variable `APP_QUERYREWRITER_SERVERURL: ${APP_QUERYREWRITER_SERVERURL:-"nim-llm:8000"}` por `APP_QUERYREWRITER_SERVERURL: ${APP_QUERYREWRITER_SERVERURL:-""}`, así como `ENABLE_QUERYREWRITER: ${ENABLE_QUERYREWRITER:-False}` por `ENABLE_QUERYREWRITER: ${ENABLE_QUERYREWRITER:-true}`. Si se desea modificar también el modelo utilizado, se deberá modificar la variable `APP_QUERYREWRITER_MODELNAME`.
+        Posteriormente, en el archivo [docker-compose-rag-server.yaml](../deploy/compose/docker-compose-rag-server.yaml) es necesario cambiar la variable `APP_TRACING_ENABLED: "False"` por `APP_TRACING_ENABLED: "True"`. Véase el readme [observability.md](../docs/observability.md) para aprender más acerca del funcionamiento de este servicio.
+    * **c. Query rewriting support:** permite una mayor precisión para conversaciones haciendo una llamada adicional al LLM para descontextualizar la pregunta entrante, antes de enviarla a la parte de retrieving. Siguiendo el readme [query_rewriter.md](../docs/query_rewriter.md), para desplegar este servicio en la nube (puesto que no cabe en GPU junto con el resto de servicios) es necesario cambiar la variable `APP_QUERYREWRITER_SERVERURL: ${APP_QUERYREWRITER_SERVERURL:-"nim-llm:8000"}` por `APP_QUERYREWRITER_SERVERURL: ${APP_QUERYREWRITER_SERVERURL:-""}`, así como `ENABLE_QUERYREWRITER: ${ENABLE_QUERYREWRITER:-False}` por `ENABLE_QUERYREWRITER: ${ENABLE_QUERYREWRITER:-true}`. Si se desea modificar también el modelo utilizado, se deberá modificar la variable `APP_QUERYREWRITER_MODELNAME`.
 
 13. Una vez modificados los archivos necesarios para poder desplegar el RAG con los nuevos modelos y los servicios añadidos, levantaremos los servicios uno por uno:
 
