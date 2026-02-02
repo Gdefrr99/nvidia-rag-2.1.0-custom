@@ -1,4 +1,4 @@
-# NVIDIA RAG Blueprint (Optimized for 3x A100 40GB)
+# NVIDIA RAG Blueprint (optimized for 3x A100 40GB)
 
 Use the following documentation to learn about this customized version of the NVIDIA RAG Blueprint.
 
@@ -107,11 +107,10 @@ This specific deployment is tuned for:
 - Explore notebooks that demonstrate how to use the APIs [here](./notebooks/)
 - Explore [observability support](./docs/observability.md)
 - Explore [best practices for enhancing accuracy or latency](./docs/accuracy_perf.md)
-- Explore [migration guide](./docs/migration_guide.md) if you are migrating from rag v1.0.0 to this version.
 
 ## License
 
-This project is a modification of the NVIDIA AI BLUEPRINT, licensed under the [Apache License, Version 2.0.](./LICENSE) This project will download and install additional third-party open source software projects and containers. Review [the license terms of these open source projects](./LICENSE-3rd-party.txt) before use.
+This project is a customized version and modification of the original NVIDIA AI BLUEPRINT, developed to optimize resource usage for 3x A100 40GB environments. It is licensed under the [Apache License, Version 2.0.](./LICENSE) This project will download and install additional third-party open source software projects and containers. Review [the license terms of these open source projects](./LICENSE-3rd-party.txt) before use.
 
 Use of the models in this blueprint is governed by the [NVIDIA AI Foundation Models Community License](https://docs.nvidia.com/ai-foundation-models-community-license.pdf).
 
