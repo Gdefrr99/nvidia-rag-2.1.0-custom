@@ -1,7 +1,6 @@
+# NVIDIA RAG Blueprint (Optimized for 3x A100 40GB)
 
-<h1><img align="center" src="https://github.com/user-attachments/assets/cbe0d62f-c856-4e0b-b3ee-6184b7c4d96f">NVIDIA RAG Blueprint</h1>
-
-Use the following documentation to learn about the NVIDIA RAG Blueprint.
+Use the following documentation to learn about this customized version of the NVIDIA RAG Blueprint.
 
 - [Overview](#overview)
 - [Key Features](#key-features)
@@ -10,175 +9,97 @@ Use the following documentation to learn about the NVIDIA RAG Blueprint.
 - [Technical Diagram](#technical-diagram)
 - [Minimum System Requirements](#minimum-system-requirements)
   - [OS Requirements](#os-requirements)
-  - [Deployment Options](#deployment-options)
   - [Driver versions](#driver-versions)
   - [Hardware Requirements](#hardware-requirements)
-  - [Hardware requirements for self hosting all NVIDIA NIM microservices](#hardware-requirements-for-self-hosting-all-nvidia-nim-microservices)
 - [Next Steps](#next-steps)
-- [Available Customizations](#available-customizations)
 - [Inviting the community to contribute](#inviting-the-community-to-contribute)
 - [License](#license)
 - [Terms of Use](#terms-of-use)
 
-
 ## Overview
 
-This blueprint serves as a reference solution for a foundational Retrieval Augmented Generation (RAG) pipeline.
-One of the key use cases in Generative AI is enabling users to ask questions and receive answers based on their enterprise data corpus.
-This blueprint demonstrates how to set up a RAG solution that uses NVIDIA NIM and GPU-accelerated components.
-By default, this blueprint leverages locally-deployed NVIDIA NIM microservices to meet specific data governance and latency requirements.
-However, you can replace these models with your NVIDIA-hosted models available in the [NVIDIA API Catalog](https://build.nvidia.com).
+This repository is a customized adaptation of the **NVIDIA RAG Blueprint v2.1.0**.
+
+While the original blueprint is designed for high-memory infrastructure (A100 80GB GPUs), **this version has been optimized to run fully functional on 3x NVIDIA A100 40GB GPUs**.
+
+It serves as a reference solution for a foundational Retrieval Augmented Generation (RAG) pipeline, demonstrating how to set up a solution that uses NVIDIA NIM and GPU-accelerated components within more constrained hardware environments. To achieve this, specific models have been swapped for efficient, high-performance alternatives (such as the Nemotron Nano 4B), and the Vector Database has been offloaded to CPU to maximize GPU memory availability for inference and ingestion.
 
 ## Key Features
-- Multimodal data extraction support with text, tables, charts, and infographics
-- Hybrid search with dense and sparse search
-- Multilingual and cross-lingual retrieval
-- Reranking to further improve accuracy
-- GPU-accelerated Index creation and search
-- Multi-turn conversations. Opt-in query rewriting for better accuracy.
-- Multi-session support
-- Telemetry and observability
-- Opt-in for query rewriting to improve multiturn accuracy
-- Opt-in for reflection to improve accuracy
-- Opt-in for guardrailing conversations
-- Opt-in image captioning with vision language models (VLMs)
-- Sample user interface
-- OpenAI-compatible APIs
-- Decomposable and customizable
+
+This customized blueprint includes the following active features and services:
+
+- **Optimized Resource Usage:** configured to run on 40GB VRAM GPUs by using lightweight yet powerful NIMs.
+- **Full Observability Stack:** Pre-configured and enabled by default, including:
+  - **OpenTelemetry (OTel) Collector** for trace collection.
+  - **Zipkin** for distributed tracing visualization.
+  - **Prometheus** for metrics collection.
+  - **Grafana** for monitoring dashboards.
+- **Hybrid Search:** Enabled by default (Dense + Sparse search) for improved retrieval accuracy.
+- **Multimodal Ingestion:** Support for extracting text, tables, charts, and infographics from PDFs, PPTX, and DOCX.
+- **CPU-Offloaded Vector Database:** Milvus is configured to run on CPU to reserve GPU VRAM for LLM and Embedding tasks.
+- **Sample User Interface:** Includes the `rag-playground` for immediate interaction.
+- **OpenAI-compatible APIs**: Easy integration with existing tools.
 
 ## Target Audience
 
 This blueprint is for:
 
-- **Developers**: Developers who want a quick start to set up a RAG solution with a path-to-production with the NVIDIA NIM.
+- **Developers**: Developers who want a quick start to set up a RAG solution with NVIDIA NIM but have access to hardware with lower VRAM capacity (specifically A100 40GB cards) compared to the standard requirements.
 
 ## Software Components
 
-The following are the default components included in this blueprint:
+The following are the components included in this customized blueprint, reflecting the active services:
 
-* NVIDIA NIM Microservices
-   * Response Generation (Inference)
-      * [NIM of nvidia/llama-3.3-nemotron-super-49b-v1](https://build.nvidia.com/nvidia/llama-3_3-nemotron-super-49b-v1)
-    * Retriever Models
-      * [NIM of nvidia/llama-3_2-nv-embedqa-1b-v2]( https://build.nvidia.com/nvidia/llama-3_2-nv-embedqa-1b-v2)
+* **NVIDIA NIM Microservices**
+    * **Response Generation (Inference)**
+      * [NIM of nvidia/Llama-3.1-Nemotron-Nano-4B-v1.1](https://build.nvidia.com/nvidia/llama-3_1-nemotron-nano-4b-instruct) (Replaces the 49B model for efficiency).
+    * **Retriever Models**
+      * [NIM of nvidia/nv-embedqa-e5-v5](https://build.nvidia.com/nvidia/nv-embedqa-e5-v5) (optimized with 1024 dimensions).
       * [NIM of nvidia/llama-3_2-nv-rerankqa-1b-v2](https://build.nvidia.com/nvidia/llama-3_2-nv-rerankqa-1b-v2)
       * [NeMo Retriever Page Elements NIM](https://build.nvidia.com/nvidia/nemoretriever-page-elements-v2)
       * [NeMo Retriever Table Structure NIM](https://build.nvidia.com/nvidia/nemoretriever-table-structure-v1)
       * [NeMo Retriever Graphic Elements NIM](https://build.nvidia.com/nvidia/nemoretriever-graphic-elements-v1)
       * [PaddleOCR NIM](https://build.nvidia.com/baidu/paddleocr)
 
-  * Optional NIMs
-
-    * [Llama 3.1 NemoGuard 8B Content Safety NIM](https://build.nvidia.com/nvidia/llama-3_1-nemoguard-8b-content-safety)
-    * [Llama 3.1 NemoGuard 8B Topic Control NIM](https://build.nvidia.com/nvidia/llama-3_1-nemoguard-8b-topic-control)
-    * [Mixtral 8x22B Instruct 0.1](https://build.nvidia.com/mistralai/mixtral-8x22b-instruct)
-    * [Llama 3.2 11B Vision Instruct NIM](https://build.nvidia.com/meta/llama-3.2-11b-vision-instruct)
-    * [NeMo Retriever Parse NIM](https://build.nvidia.com/nvidia/nemoretriever-parse)
-
-* RAG Orchestrator server - Langchain based
-* Milvus Vector Database - accelerated with NVIDIA cuVS
-* Ingestion - [Nvidia-Ingest](https://github.com/NVIDIA/nv-ingest/tree/main) is leveraged for ingestion of files. NVIDIA-Ingest is a scalable, performance-oriented document content and metadata extraction microservice. Including support for parsing PDFs, Word and PowerPoint documents, it uses specialized NVIDIA NIM microservices to find, contextualize, and extract text, tables, charts and images for use in downstream generative applications.
-* File Types: File types supported by Nvidia-Ingest are supported by this blueprint. This includes `.pdf`, `.pptx`, `.docx` having images. Image captioning support is turned off by default to improve latency, so questions about images in documents will yield poor accuracy. Files with following extensions are supported:
-
-- `bmp`
-- `docx`
-- `html` (treated as text)
-- `jpeg`
-- `json` (treated as text)
-- `md` (treated as text)
-- `pdf`
-- `png`
-- `pptx`
-- `sh` (treated as text)
-- `tiff`
-- `txt`
-
-We provide Docker Compose scripts that deploy the microservices on a single node.
-When you are ready for a large-scale deployment,
-you can use the included Helm charts to deploy the necessary microservices.
-You use sample Jupyter notebooks with the JupyterLab service to interact with the code directly.
-
-The Blueprint contains sample data from the [NVIDIA Developer Blog](https://github.com/NVIDIA-AI-Blueprints/rag/blob/main/data/dataset.zip) and also some [sample multimodal data](./data/multimodal/).
-You can build on this blueprint by customizing the RAG application to your specific use case.
-
-We also provide a sample user interface named `rag-playground`.
-
+* **RAG Orchestrator server** - Langchain based.
+* **Milvus Vector Database** - Running in **CPU-only mode** (v2.5.3) to conserve GPU memory.
+* **Observability Services**:
+    * Zipkin
+    * Prometheus
+    * Grafana
+    * OpenTelemetry Collector
+* **Ingestion** - [Nvidia-Ingest](https://github.com/NVIDIA/nv-ingest/tree/main) for parsing PDFs, Word, and PowerPoint documents.
 
 ## Technical Diagram
 
-  <p align="center">
-  <img src="./docs/arch_diagram.png" width="750">
-  </p>
+<p align="center">
+<img src="./docs/arch_diagram.png" width="750">
+</p>
 
+The architecture remains logically consistent with the original blueprint. The workflow proceeds as follows:
 
-The image represents the architecture and workflow. Here's a step-by-step explanation of the workflow from end-user perspective:
-
-1. **User Interaction via RAG Playground or APIs**:
-   - The user interacts with this blueprint by typing queries into the sample UI microservice named as **RAG Playground**. These queries are sent to the system through the `POST /generate` API exposed by the RAG server microservice. There are separate [notebooks](./notebooks/) available which showcase API usage as well.
-
-2. **Query Processing**:
-   - The query enters the **RAG Server**, which is based on LangChain. An optional **Query Rewriter** component may refine or decontextualize the query for better retrieval results at this stage. An optional NeMoGuardrails component can be enabled as well to help filter out queries at input of the pipeline.
-
-3. **Retrieval of Relevant Documents**:
-   - The refined query is passed to the **Retriever** module if the **RAG Server microservice**. This component queries the **Milvus Vector Database microservice**, which stores embeddings of the data, generated using **NeMo Retriever Embedding microservice**. The retriever module identifies the top K most relevant chunks of information related to the query.
-
-4. **Reranking for Precision**:
-   - The top K chunks are passed to the optional **NeMo Retriever reranking microservice**. The reranker narrows down the results to the top N most relevant chunks, improving precision.
-
-5. **Response Generation**:
-   - The top N chunks are injected in the prompt and sent to the **Response Generation** module, which leverages **NeMo LLM inference Microservice** to generate a natural language response based on the retrieved information. Optionally, a reflection module can be enabled which makes additional LLM calls to improve the response by verifying its groundness based on retrieved context at this stage. NeMo guardrails can also be enabled at this stage to guardrail the output against toxicity.
-
-6. **Delivery of Response**:
-   - The generated response is sent back to the **RAG Playground**, where the user can view the answer to their query as well as check the output of the retriever module using the `Citations` option.
-
-7. **Ingestion of Data**:
-   - Separately, unstructured data is ingested into the system via the `POST /documents` API using the **Ingestor server microservice**. This data is preprocessed, split into chunks and stored in the **Milvus Vector Database** using **Nvingest microservice** which is called from the ingestor microservice.
-
-This modular design ensures efficient query processing, accurate retrieval of information, and easy customization.
+1. **User Interaction**: Users interact via the **RAG Playground** or APIs.
+2. **Query Processing**: The **RAG Server** processes the query.
+3. **Retrieval**: The **Retriever** queries the **Milvus Vector Database** (running on CPU in this deployment) using embeddings generated by the **E5-v5 Embedding NIM**.
+4. **Reranking**: Top results are refined by the **Reranking NIM**.
+5. **Response Generation**: The context is sent to the **Llama 3.1 Nemotron Nano 4B NIM** to generate the answer.
+6. **Observability**: Metrics and traces are collected in the background by OTel, Zipkin, and Prometheus.
 
 ## Minimum System Requirements
 
 ### OS Requirements
 Ubuntu 22.04 OS
 
-### Deployment Options
-- [Docker](./docs/quickstart.md#deploy-with-docker-compose)
-- [Kubernetes](./docs/quickstart.md#deploy-with-helm-chart)
-
 ### Driver versions
-
-- GPU Driver -  530.30.02 or later
+- GPU Driver - 530.30.02 or later
 - CUDA version - 12.6 or later
 
 ### Hardware Requirements
-By default, this blueprint deploys the referenced NIM microservices locally. For this, you will require a minimum of:
- - 2xH100
- - 3xA100
-The blueprint can be also modified to use NIM microservices hosted by NVIDIA in [NVIDIA API Catalog](https://build.nvidia.com/explore/discover).
+This specific deployment is tuned for:
+- **GPUs**: 3x NVIDIA A100 (40GB VRAM)
+- **Deployment Tool**: Docker & Docker Compose (v2.29.1 or later)
 
-Following are the hardware requirements for each component.
-The reference code in the solution (glue code) is referred to as as the "pipeline".
-
-The overall hardware requirements depend on whether you
-[Deploy With Docker Compose](./docs/quickstart.md#deploy-with-docker-compose) or [Deploy With Helm Chart](./docs/quickstart.md#deploy-with-helm-chart).
-
-
-### Hardware requirements for self hosting all NVIDIA NIM microservices
-
-**The NIM and hardware requirements only need to be met if you are self-hosting them with default settings of RAG.**
-See [Using self-hosted NVIDIA NIM microservices](./docs/quickstart.md#deploy-with-docker-compose).
-
-- **Pipeline operation**: 1x L40 GPU or similar recommended. It is needed for Milvus vector store database, as GPU acceleration is enabled by default.
-- **LLM NIM**: [Nvidia llama-3.3-nemotron-super-49b-v1](https://docs.nvidia.com/nim/large-language-models/latest/supported-models.html#id83)
-  - For improved paralleled performance, we recommend 8x or more H100s/A100s for LLM inference.
-- **Embedding NIM**: [Llama-3.2-NV-EmbedQA-1B-v2 Support Matrix](https://docs.nvidia.com/nim/nemo-retriever/text-embedding/latest/support-matrix.html#llama-3-2-nv-embedqa-1b-v2)
-  - The pipeline can share the GPU with the Embedding NIM, but it is recommended to have a separate GPU for the Embedding NIM for optimal performance.
-- **Reranking NIM**: [llama-3_2-nv-rerankqa-1b-v2 Support Matrix](https://docs.nvidia.com/nim/nemo-retriever/text-reranking/latest/support-matrix.html#llama-3-2-nv-rerankqa-1b-v2)
-- **NVIDIA NIM for Image OCR**: [baidu/paddleocr](https://docs.nvidia.com/nim/ingestion/table-extraction/latest/support-matrix.html#supported-hardware)
-- **NVIDIA NIMs for Object Detection**:
-  - [NeMo Retriever Page Elements v2](https://docs.nvidia.com/nim/ingestion/object-detection/latest/support-matrix.html#nemo-retriever-page-elements-v2)
-  - [NeMo Retriever Graphic Elements v1](https://docs.nvidia.com/nim/ingestion/object-detection/latest/support-matrix.html#nemo-retriever-graphic-elements-v1)
-  - [NeMo Retriever Table Structure v1](https://docs.nvidia.com/nim/ingestion/object-detection/latest/support-matrix.html#nemo-retriever-table-structure-v1)
+> **Note:** Unlike the original blueprint which requires A100 80GB cards, this version runs comfortably on 40GB cards due to the model swaps (Nano 4B & E5-v5) and CPU offloading of Milvus.
 
 ## Next Steps
 
@@ -189,37 +110,17 @@ See [Using self-hosted NVIDIA NIM microservices](./docs/quickstart.md#deploy-wit
 - Explore [best practices for enhancing accuracy or latency](./docs/accuracy_perf.md)
 - Explore [migration guide](./docs/migration_guide.md) if you are migrating from rag v1.0.0 to this version.
 
-## Available Customizations
-
-The following are some of the customizations that you can make after you complete the steps in [Get Started](/docs/quickstart.md).
-
-- [Change the Inference or Embedding Model](docs/change-model.md)
-- [Customize Prompts](docs/prompt-customization.md)
-- [Customize LLM Parameters at Runtime](docs/llm-params.md)
-- [Support Multi-Turn Conversations](docs/multiturn.md)
-- [Enable Self-Reflection to improve accuracy](docs/self-reflection.md)
-- [Enable Query rewriting to Improve accuracy of Multi-Turn Conversations](docs/query_rewriter.md)
-- [Enable Image captioning support for ingested documents](docs/image_captioning.md)
-- [Enable NeMo Guardrails for guardrails at input/output](docs/nemo-guardrails.md)
-- [Enable hybrid search for milvus](docs/hybrid_search.md)
-- [Enable text-only ingestion of files](docs/text_only_ingest.md)
-
-
 ## Inviting the community to contribute
 
 We're posting these examples on GitHub to support the NVIDIA LLM community and facilitate feedback.
 We invite contributions!
 To open a GitHub issue or pull request, see the [contributing guidelines](./CONTRIBUTING.md).
 
-
 ## License
 
-This NVIDIA NVIDIA AI BLUEPRINT is licensed under the [Apache License, Version 2.0.](./LICENSE) This project will download and install additional third-party open source software projects and containers. Review [the license terms of these open source projects](./LICENSE-3rd-party.txt) before use.
+This project is a modification of the NVIDIA AI BLUEPRINT, licensed under the [Apache License, Version 2.0.](./LICENSE) This project will download and install additional third-party open source software projects and containers. Review [the license terms of these open source projects](./LICENSE-3rd-party.txt) before use.
 
 Use of the models in this blueprint is governed by the [NVIDIA AI Foundation Models Community License](https://docs.nvidia.com/ai-foundation-models-community-license.pdf).
 
 ## Terms of Use
 This blueprint is governed by the [NVIDIA Agreements | Enterprise Software | NVIDIA Software License Agreement](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-software-license-agreement/) and the [NVIDIA Agreements | Enterprise Software | Product Specific Terms for AI Product](https://www.nvidia.com/en-us/agreements/enterprise-software/product-specific-terms-for-ai-products/). The models are governed by the [NVIDIA Agreements | Enterprise Software | NVIDIA Community Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-community-models-license/) and the [NVIDIA RAG dataset](https://github.com/NVIDIA-AI-Blueprints/rag/tree/v2.0.0/data/multimodal) which is governed by the [NVIDIA Asset License Agreement](https://github.com/NVIDIA-AI-Blueprints/rag/blob/main/data/LICENSE.DATA).
-
-The following models that are built with Llama are governed by the [Llama 3.2 Community License Agreement](https://www.llama.com/llama3_2/license/): llama-3.3-nemotron-super-49b-v1, nvidia/llama-3.2-nv-embedqa-1b-v2, and nvidia/llama-3.2-nv-rerankqa-1b-v2.
-
