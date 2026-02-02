@@ -12,7 +12,6 @@ Use the following documentation to learn about this customized version of the NV
   - [Driver versions](#driver-versions)
   - [Hardware Requirements](#hardware-requirements)
 - [Next Steps](#next-steps)
-- [Inviting the community to contribute](#inviting-the-community-to-contribute)
 - [License](#license)
 - [Terms of Use](#terms-of-use)
 
@@ -109,12 +108,6 @@ This specific deployment is tuned for:
 - Explore [observability support](./docs/observability.md)
 - Explore [best practices for enhancing accuracy or latency](./docs/accuracy_perf.md)
 - Explore [migration guide](./docs/migration_guide.md) if you are migrating from rag v1.0.0 to this version.
-
-## Inviting the community to contribute
-
-We're posting these examples on GitHub to support the NVIDIA LLM community and facilitate feedback.
-We invite contributions!
-To open a GitHub issue or pull request, see the [contributing guidelines](./CONTRIBUTING.md).
 
 ## License
 
