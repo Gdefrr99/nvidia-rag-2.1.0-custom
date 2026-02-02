@@ -22,38 +22,38 @@ This repository is a customized adaptation of the **NVIDIA RAG Blueprint v2.1.0*
 
 While the original blueprint is designed for high-memory infrastructure (A100 80GB GPUs), **this version has been optimized to run fully functional on 3x NVIDIA A100 40GB GPUs**.
 
-It serves as a reference solution for a foundational Retrieval Augmented Generation (RAG) pipeline, demonstrating how to set up a solution that uses NVIDIA NIM and GPU-accelerated components within more constrained hardware environments. To achieve this, specific models have been swapped for efficient, high-performance alternatives (such as the Nemotron Nano 4B), and the Vector Database has been offloaded to CPU to maximize GPU memory availability for inference and ingestion.
+It serves as a reference solution for a foundational Retrieval Augmented Generation (RAG) pipeline, demonstrating how to set up a solution that uses NVIDIA NIM and GPU-accelerated components within more constrained hardware environments. To achieve this, specific models have been swapped for efficient, high-performance alternatives (such as the Nemotron Nano 4B), and the vector database has been offloaded to CPU to maximize GPU memory availability for inference and ingestion.
 
 ## Key Features
 
 This customized blueprint includes the following active features and services:
 
-- **Optimized Resource Usage:** configured to run on 40GB VRAM GPUs by using lightweight yet powerful NIMs.
-- **Full Observability Stack:** Pre-configured and enabled by default, including:
-  - **OpenTelemetry (OTel) Collector** for trace collection.
+- **Optimized resource usage:** configured to run on 40GB VRAM GPUs by using lightweight yet powerful NIMs.
+- **Full observability stack:** pre-configured and enabled by default, including:
+  - **OpenTelemetry (OTel) collector** for trace collection.
   - **Zipkin** for distributed tracing visualization.
   - **Prometheus** for metrics collection.
   - **Grafana** for monitoring dashboards.
-- **Hybrid Search:** Enabled by default (Dense + Sparse search) for improved retrieval accuracy.
-- **Multimodal Ingestion:** Support for extracting text, tables, charts, and infographics from PDFs, PPTX, and DOCX.
-- **CPU-Offloaded Vector Database:** Milvus is configured to run on CPU to reserve GPU VRAM for LLM and Embedding tasks.
-- **Sample User Interface:** Includes the `rag-playground` for immediate interaction.
-- **OpenAI-compatible APIs**: Easy integration with existing tools.
+- **Hybrid search:** enabled by default (dense + sparse search) for improved retrieval accuracy.
+- **Multimodal ingestion:** Support for extracting text, tables, charts, and infographics from PDFs, PPTX, and DOCX.
+- **CPU-offloaded vector database:** Milvus is configured to run on CPU to reserve GPU VRAM for LLM and embedding tasks.
+- **Sample user interface:** includes the `rag-playground` for immediate interaction.
+- **OpenAI-compatible APIs**: easy integration with existing tools.
 
 ## Target Audience
 
 This blueprint is for:
 
-- **Developers**: Developers who want a quick start to set up a RAG solution with NVIDIA NIM but have access to hardware with lower VRAM capacity (specifically A100 40GB cards) compared to the standard requirements.
+- **Developers** who want a quick start to set up a RAG solution with NVIDIA NIM but have access to hardware with lower VRAM capacity (specifically A100 40GB cards) compared to the standard requirements.
 
 ## Software Components
 
 The following are the components included in this customized blueprint, reflecting the active services:
 
 * **NVIDIA NIM Microservices**
-    * **Response Generation (Inference)**
-      * [NIM of nvidia/Llama-3.1-Nemotron-Nano-4B-v1.1](https://build.nvidia.com/nvidia/llama-3_1-nemotron-nano-4b-instruct) (Replaces the 49B model for efficiency).
-    * **Retriever Models**
+    * **Response generation (inference)**
+      * [NIM of nvidia/Llama-3.1-Nemotron-Nano-4B-v1.1](https://build.nvidia.com/nvidia/llama-3_1-nemotron-nano-4b-v1_1) (replaces the 49B model for efficiency).
+    * **Retriever models**
       * [NIM of nvidia/nv-embedqa-e5-v5](https://build.nvidia.com/nvidia/nv-embedqa-e5-v5) (optimized with 1024 dimensions).
       * [NIM of nvidia/llama-3_2-nv-rerankqa-1b-v2](https://build.nvidia.com/nvidia/llama-3_2-nv-rerankqa-1b-v2)
       * [NeMo Retriever Page Elements NIM](https://build.nvidia.com/nvidia/nemoretriever-page-elements-v2)
@@ -62,7 +62,7 @@ The following are the components included in this customized blueprint, reflecti
       * [PaddleOCR NIM](https://build.nvidia.com/baidu/paddleocr)
 
 * **RAG Orchestrator server** - Langchain based.
-* **Milvus Vector Database** - Running in **CPU-only mode** (v2.5.3) to conserve GPU memory.
+* **Milvus Vector Database** - running in **CPU-only mode** (v2.5.3) to conserve GPU memory.
 * **Observability Services**:
     * Zipkin
     * Prometheus
@@ -78,12 +78,12 @@ The following are the components included in this customized blueprint, reflecti
 
 The architecture remains logically consistent with the original blueprint. The workflow proceeds as follows:
 
-1. **User Interaction**: Users interact via the **RAG Playground** or APIs.
-2. **Query Processing**: The **RAG Server** processes the query.
-3. **Retrieval**: The **Retriever** queries the **Milvus Vector Database** (running on CPU in this deployment) using embeddings generated by the **E5-v5 Embedding NIM**.
-4. **Reranking**: Top results are refined by the **Reranking NIM**.
-5. **Response Generation**: The context is sent to the **Llama 3.1 Nemotron Nano 4B NIM** to generate the answer.
-6. **Observability**: Metrics and traces are collected in the background by OTel, Zipkin, and Prometheus.
+1. **User interaction**: users interact via the **RAG Playground** or APIs.
+2. **Query processing**: the **RAG Server** processes the query.
+3. **Retrieval**: the **Retriever** queries the **Milvus Vector Database** (running on CPU in this deployment) using embeddings generated by the **E5-v5 Embedding NIM**.
+4. **Reranking**: top results are refined by the **Reranking NIM**.
+5. **Response Generation**: the context is sent to the **Llama 3.1 Nemotron Nano 4B NIM** to generate the answer.
+6. **Observability**: metrics and traces are collected in the background by OTel, Zipkin, and Prometheus.
 
 ## Minimum System Requirements
 
@@ -97,7 +97,7 @@ Ubuntu 22.04 OS
 ### Hardware Requirements
 This specific deployment is tuned for:
 - **GPUs**: 3x NVIDIA A100 (40GB VRAM)
-- **Deployment Tool**: Docker & Docker Compose (v2.29.1 or later)
+- **Deployment tool**: Docker & Docker Compose (v2.29.1 or later)
 
 > **Note:** Unlike the original blueprint which requires A100 80GB cards, this version runs comfortably on 40GB cards due to the model swaps (Nano 4B & E5-v5) and CPU offloading of Milvus.
 
